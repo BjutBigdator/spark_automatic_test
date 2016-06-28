@@ -11,6 +11,8 @@
     -shutdown.sh        ###停止所有提交任务
  -config  ###配置文件
     -experiment_config  ###实验具体参数设置及变动(例如CPU和MEM的变化等)
+        -cpu-mem
+        -extra_param.conf
     -env.sh             ###相关环境变量（包括负载主目录，负载配置文件路径等）
     -plan.conf          ###实验计划配置，后续脚本将按此计划依次执行
     -workload_cpumem.conf ###应用配比文件（根据不同性质进行配置）
@@ -71,6 +73,8 @@ wordcount_executable_basedir=KMeans/bin
 wordcount_config_basedir=/KMeans/conf 
 ```
 ### 2.2 experiment_config
+
+#### 2.2.1 cpu_mem
  
 主要作用：该文件主要用于设置各个实验组的常规实验参数，如CPU，内存等，文件内容及格式如下：
  
@@ -78,21 +82,36 @@ wordcount_config_basedir=/KMeans/conf
 ##cpu&memory:
 1 1,1g,0.15 3,1g,0.15 46,2g,0.15 46,4g,0.15 46,4g,0.15 92,12g,0.15 69,6g,0.15
 ```
+
+#### 2.2.2 extra_param.conf
+
+主要作用：除CPU，MEM外其余参数设置，主要需要设置名称，修改位置，以及具体的取值等，具体格式如下：
+
+```
+###statment
+name:2:SPARK_WORKER_OPTS;SPARK_STORAGE_MEMORYFRACTION
+path:2:$SPARK_HOME/conf/spark-env.sh;$SPARK_BENCH_HOME/conf/env.sh
+1:"-Djava.library.path=/home/zc/sparkdir/spark-hadoop2.3/lib/native -Dspark.smspark.enable=true -Dspark.smspark.evict.factor1=0.5,0.5,0.2,0.2 -Dspark.smspark.evict.factor2=0.5,0.5,0.2,0.2 -Dspark.smspark.da.step=2";0.5
+```
+注意事项：name行和path行必须存在，用来表示所有需要修改的配置文件的变量名称和相关路径
+
+
 ### 2.3 plan.conf
  
 主要作用：该文件是实验的主要计划配置，用户可以将所有需要进行的进行的实验按指定格式写入该文件，脚本将自动根据该计划执行相应的实验，该文件内容如下：
 
 ```
-#format workloadType_platform_labno1(cpu/mem)_labno2_labno3_predict-step
+#format workloadType;platformversion;useHistory;historyfile;cpu-mem-config;extra_param_no
 
-cpumem_spark_1_3_3_2
- 
-#cpu：代表负载类型，有CPU、IO、MIX。如果是cpu密集型，那么需要去寻找这种类型混合负载中的应用和配比。
-#hadoop：spark、tachyon、smspark
-#1：cpu mem实验组号
-#3：第一个影响因子实验组号
-#3：第二个影响因子实验组号
-#2：预测步长
+cpumem;spark;true;history_cpumem_1_1;1;1
+
+#cpu：代表负载类型，有cpumem、IO、MIX。如果是cpu密集型
+#spark_version spark版本--包括原生，对比对象等
+#是否使用历史脚本 true/false
+#若true则该字段为脚本名称 若为false则写0占位
+#cpu-mem配置
+#影响因子组号
+
 ```
  
 ### 2.4 workload_cpumem.conf
@@ -111,6 +130,7 @@ cpumem_spark_1_3_3_2
 5 bryantchang.workload.generator.Tpcds1Script 2
 6 bryantchang.workload.generator.PageRankScript 6
 ```
+
 ## 3、 bin目录中各个脚本的使用方法
  
 ### 3.1 plan.sh
@@ -123,9 +143,10 @@ cpumem_spark_1_3_3_2
 
 > * 参数  
 >> * spark_version
+>> * extra_param_no
 >> * log_dir
 > * 预处理 将该脚本开始处环境变量配好
-> * 使用方法 sh bin/setup.sh spark log_dir
+> * 使用方法 sh bin/setup.sh spark extra_param_no log_dir
 
 ### 3.3 workload_gen.sh
 
@@ -135,13 +156,11 @@ cpumem_spark_1_3_3_2
 >> * env_path=$3
 >> * lib_path=$4
 >> * cpu_mem_no=$5
->> * faction1=$6
->> * faction2=$7
->> * prediction_step=$8
->> * log_path=$9
->> * log_dir
+>> * use_history=$6
+>> * history_file=$7
+>> * log_path=$8
 > * 预处理 将该脚本开始处环境变量配好
-> * 使用方法 sh bin/workload_gen.sh workload_source_conf_path dest_path env_path lib_path cpu_mem_no faction1 faction2 prediction_step log_path
+> * 使用方法 sh bin/workload_gen.sh workload_source_conf dest_shell_name env_path lib_path cpu_mem_no use_history history_file log_path
 
 ### 3.4 shut_down.sh
 

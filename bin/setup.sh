@@ -14,10 +14,10 @@ SPARK_BENCH_HOME=/home/zc/sparkdir/spark-bench
 SPARK_WORKER_MEMORY=22g
 SPARK_WORKER_MEMORY_TACHYON=16g
 tools_dir=$rootdir/tools
-faction_file=$rootdir/config/experiment_config/factions.conf
+extra_param_file=$rootdir/config/experiment_config/extra_param.conf
 
 function usage() {
-	echo "usage: $0 spark_version log_path if_use_faction_conf faction_conf_file"
+	echo "usage: $0 spark_version log_path if_use_extra_param_conf extra_param_conf_file"
 }
 
 if [[ $# -lt 3 ]]; then
@@ -42,9 +42,9 @@ log_path=$2
 declare -a name
 declare -a path
 
-faction_no=$3
+extra_param_no=$3
 
-for p in $(sed 's/ //g' $faction_file) 
+for p in $(sed 's/ //g' $extra_param_file) 
 do
 	if [[ "${p:0:1}" = "#" ]]; then
 		continue;
@@ -60,14 +60,14 @@ do
 			path[$i]=$(echo $param_paths|cut -d ";" -f$i)
 		done
 	else
-		faction_no_in_file=$(echo "$p"|cut -f1 -d":")
-		if [[ $faction_no -ne $faction_no_in_file ]]; then
+		extra_param_no_in_file=$(echo "$p"|cut -f1 -d":")
+		if [[ $extra_param_no -ne $extra_param_no_in_file ]]; then
 			continue
 		else
-			factions=$(echo "$p"|cut -f2 -d":")
+			extra_params=$(echo "$p"|cut -f2 -d":")
 			for (( i = 1; i <= $param_count; i++ )); do
-				faction=$(echo "$factions"|cut -f$i -d";")
-				echo "sed -i \"/${name[$i]}=/ c export ${name[$i]}=$faction\" ${path[$i]}"
+				extra_param=$(echo "$extra_params"|cut -f$i -d";")
+				echo "sed -i \"/${name[$i]}=/ c export ${name[$i]}=$extra_param\" ${path[$i]}"
 			done
 		fi
 	fi
