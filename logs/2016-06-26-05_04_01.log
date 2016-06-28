@@ -1,0 +1,12 @@
+--------The plan begins at 2016-06-26 05:04:01---------
+The config of plan is:/usr/home/BryantChang/scripts/config/plan.conf
+parse the plan
+The opts of java is:--conf /usr/home/BryantChang/scripts/config/env.sh --source /usr/home/BryantChang/scripts/config/workload_cpu.conf --dest /usr/home/BryantChang/scripts/scripts_to_run/workload_run_1.sh --lambda 10 --genRandInterval 500 --useHistory false --history 111 --cpu_mem 1 --useExtendParams false
+----------generating the script-------------------
+lambda is:10
+source file is /usr/home/BryantChang/scripts/config/workload_cpu.conf
+dest file is /usr/home/BryantChang/scripts/scripts_to_run/workload_run_1.sh
+History file is 111
+bryantchang.workload.generator.KMeansScript
+hdfs:hdfs://centos1:9000/SparkBench
+CPU:1Mem:1g
