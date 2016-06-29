@@ -30,14 +30,16 @@ log_path=$2
 
 
 
-# echo "start to set up the $spark_version" >> $log_path 2>&1
+echo "start to set up the $spark_version" >> $log_path 2>&1
 
-# echo "stop spark" >> $log_path 2>&1
-# ssh $CUR_NAME@$SPARK_MASTER sh $SPARK_HOME/sbin/stop-all.sh >> $log_path 2>&1
-# echo "stop tachyon" >> $log_path 2>&1
-# # ssh $CUR_NAME@$SPARK_MASTER sh $TACHYON_HOME/bin/tachyon-stop.sh
-# echo "modify spark_default" >> $log_path 2>&1
-# sed -i "/spark.eventLog.enabled/ c spark.eventLog.enabled \t\t true" $SPARK_HOME/conf/spark-defaults.conf
+echo "stop spark" >> $log_path 2>&1
+ssh $CUR_NAME@$SPARK_MASTER sh $SPARK_HOME/sbin/stop-all.sh >> $log_path 2>&1
+sh $rootdir/bin/clearshm.sh $log_path 2>&1
+sh $rootdir/bin/logDownloader-spark.sh clearAllMetrics $log_path 2>&1
+echo "stop tachyon" >> $log_path 2>&1
+sh $rootdir/bin/stop-tachyon.sh
+echo "modify spark_default" >> $log_path 2>&1
+sed -i "/spark.eventLog.enabled/ c spark.eventLog.enabled \t\t true" $SPARK_HOME/conf/spark-defaults.conf
 
 declare -a name
 declare -a path
@@ -67,7 +69,7 @@ do
 			extra_params=$(echo "$p"|cut -f2 -d":")
 			for (( i = 1; i <= $param_count; i++ )); do
 				extra_param=$(echo "$extra_params"|cut -f$i -d";")
-				echo "sed -i \"/${name[$i]}=/ c export ${name[$i]}=$extra_param\" ${path[$i]}"
+				sed -i "/${name[$i]}=/ c export ${name[$i]}=$extra_param" ${path[$i]}
 			done
 		fi
 	fi
@@ -78,29 +80,29 @@ done
 
 
 
-# if [[ $spark_version == "spark" ]]; then
-# 	sed -i "/spark.smspark.enable/ c spark.smspark.enable \t\t false" $SPARK_HOME/conf/spark-defaults.conf
-# 	sed -i "/STORAGE_LEVEL=/ c STORAGE_LEVEL=MEMORY_ONLY" $SPARK_BENCH_HOME/conf/env.sh
-# 	sed -i "/SPARK_WORKER_MEMORY=/ c export SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY" $SPARK_HOME/conf/spark-env.sh
-# 	sh $tools_dir/linux_tools/mscp.sh $tools_dir/linux_tools/passwd_config file $SPARK_HOME/conf/spark-env.sh $SPARK_HOME/conf/
+if [[ $spark_version == "spark" ]]; then
+	sed -i "/spark.smspark.enable/ c spark.smspark.enable \t\t false" $SPARK_HOME/conf/spark-defaults.conf
+	sed -i "/STORAGE_LEVEL=/ c STORAGE_LEVEL=MEMORY_ONLY" $SPARK_BENCH_HOME/conf/env.sh
+	sed -i "/SPARK_WORKER_MEMORY=/ c export SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY" $SPARK_HOME/conf/spark-env.sh
+	sh $tools_dir/linux_tools/mscp.sh $tools_dir/linux_tools/passwd_config file $SPARK_HOME/conf/spark-env.sh $SPARK_HOME/conf/
 
-# elif [[ $spark_version == "smspark" ]]; then
-# 	sed -i "/spark.smspark.enable/ c spark.smspark.enable \t\t true" $SPARK_HOME/conf/spark-defaults.conf
-# 	sed -i "/STORAGE_LEVEL=/ c STORAGE_LEVEL=OFF_HEAP" $SPARK_BENCH_HOME/conf/env.sh
-# 	sed -i "/SPARK_WORKER_MEMORY=/ c export SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY" $SPARK_HOME/conf/spark-env.sh
-# 	sh $tools_dir/linux_tools/mscp.sh $tools_dir/linux_tools/passwd_config file $SPARK_HOME/conf/spark-env.sh $SPARK_HOME/conf/
+elif [[ $spark_version == "smspark" ]]; then
+	sed -i "/spark.smspark.enable/ c spark.smspark.enable \t\t true" $SPARK_HOME/conf/spark-defaults.conf
+	sed -i "/STORAGE_LEVEL=/ c STORAGE_LEVEL=OFF_HEAP" $SPARK_BENCH_HOME/conf/env.sh
+	sed -i "/SPARK_WORKER_MEMORY=/ c export SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY" $SPARK_HOME/conf/spark-env.sh
+	sh $tools_dir/linux_tools/mscp.sh $tools_dir/linux_tools/passwd_config file $SPARK_HOME/conf/spark-env.sh $SPARK_HOME/conf/
 
-# elif [[ $spark_version == "tachyon" ]]; then
-# 	sed -i "/spark.smspark.enable/ c spark.smspark.enable \t\t false" $SPARK_HOME/conf/spark-defaults.conf
-# 	sed -i "/STORAGE_LEVEL=/ c STORAGE_LEVEL=OFF_HEAP" $SPARK_BENCH_HOME/conf/env.sh
-# 	sed -i "/SPARK_WORKER_MEMORY=/ c export SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY_TACHYON" $SPARK_HOME/conf/spark-env.sh
-# 	echo "now restart tachyon"
-# 	ssh $CUR_NAME@$SPARK_MASTER sh $TACHYON_HOME/bin/tachyon-start.sh all SudoMount 
-# 	sh $tools_dir/linux_tools/mscp.sh $tools_dir/linux_tools/passwd_config file $SPARK_HOME/conf/spark-env.sh $SPARK_HOME/conf/
-# fi
-# echo "now start spark"
-# ssh $CUR_NAME@$SPARK_MASTER sh $SPARK_HOME/sbin/start-all.sh >> $log_path 2>&1
-# sleep 2
+elif [[ $spark_version == "tachyon" ]]; then
+	sed -i "/spark.smspark.enable/ c spark.smspark.enable \t\t false" $SPARK_HOME/conf/spark-defaults.conf
+	sed -i "/STORAGE_LEVEL=/ c STORAGE_LEVEL=OFF_HEAP" $SPARK_BENCH_HOME/conf/env.sh
+	sed -i "/SPARK_WORKER_MEMORY=/ c export SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY_TACHYON" $SPARK_HOME/conf/spark-env.sh
+	echo "now restart tachyon"
+	sh $rootdir/bin/start-tachyon.sh
+	sh $tools_dir/linux_tools/mscp.sh $tools_dir/linux_tools/passwd_config file $SPARK_HOME/conf/spark-env.sh $SPARK_HOME/conf/
+fi
+echo "now start spark"
+ssh $CUR_NAME@$SPARK_MASTER sh $SPARK_HOME/sbin/start-all.sh >> $log_path 2>&1
+sleep 2
 
 
 

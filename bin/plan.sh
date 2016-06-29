@@ -41,19 +41,27 @@ do
 	if [[ $use_history == "false" ]]; then
 		##generate the workloads
 		workload_source_conf="$CONFIG_DIR/workload_$workload_type.conf"
-		dest_shell_name="$SCRIPT_TO_RUN_DIR/workload_${workload_type}_${cpu_mem_no}_${extra_param_no}.sh"
-		history_file_name="$HISTORY_DIR/history_${workload_type}_${cpu_mem_no}_${extra_param_no}"
+		dest_shell_name="$SCRIPT_TO_RUN_DIR/workload_${spark_version}_${workload_type}_${cpu_mem_no}_${extra_param_no}.sh"
+		history_file_name="$HISTORY_DIR/history_${spark_version}_${workload_type}_${cpu_mem_no}_${extra_param_no}"
 		lib_dir=$rootdir/lib/bryantchang-program.jar
 		workload_gen_opts="$workload_source_conf $dest_shell_name $CONFIG_DIR/env.sh $lib_dir $cpu_mem_no false $history_file_name $now_log"
 		sh $rootdir/bin/workload_gen.sh $workload_gen_opts
 	else
 		workload_source_conf="$CONFIG_DIR/workload_$workload_type.conf"
-		dest_shell_name="$SCRIPT_TO_RUN_DIR/workload_${workload_type}_${cpu_mem_no}_${extra_param_no}.sh"
+		dest_shell_name="$SCRIPT_TO_RUN_DIR/workload_${spark_version}_${workload_type}_${cpu_mem_no}_${extra_param_no}.sh"
 		history_file_name="$HISTORY_DIR/$history_file_name"
 		lib_dir=$rootdir/lib/bryantchang-program.jar
 		workload_gen_opts="$workload_source_conf $dest_shell_name $CONFIG_DIR/env.sh $lib_dir $cpu_mem_no true $history_file_name $now_log"
 		sh $rootdir/bin/workload_gen.sh $workload_gen_opts
 	fi
+	sh $dest_shell_name
+	#sleep 7200
+	sleep 3
+	java -classpath $rootdir/lib/scala.jar TestMonitor "http://centos1:8080" 60 >> $now_log
+	sh $rootdir/bin/logDowloader-spark.sh downloadMetrics >> $now_log 2>&1
+	sleep 3
+	metrics_name="${spark_version}_${workload_type}_${cpu_mem_no}_${extra_param_no}"
+	sh $rootdir/bin/analyseMetrics-spark.sh $metrics_name >> $now_log 2>&1
 
 	
 done

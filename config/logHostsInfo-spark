@@ -1,0 +1,35 @@
+# log hosts info
+# [user]:[host]:[password]:[yarn_role]:[hdfs_role]
+
+#zc:centos-1:123456:master:namenode
+#zc:centos-2:123456:worker:datanode
+#zc:centos-3:123456:worker:datanode
+#zc:centos-4:123456:worker:datanode
+#zc:centos-5:123456:worker:datanode
+#zc:centos-6:123456:worker:datanode
+
+zc:centos1:123456:master:namenode
+zc:centos2:123456:worker:datanode
+zc:centos3:123456:worker:datanode
+zc:centos4:123456:worker:datanode
+zc:centos5:123456:worker:datanode
+zc:centos6:123456:worker:datanode
+zc:centos7:123456:worker:datanode
+zc:centos8:123456:worker:datanode
+zc:centos9:123456:worker:datanode
+zc:centos10:123456:worker:datanode
+zc:centos11:123456:worker:datanode
+zc:centos12:123456:worker:datanode
+zc:centos13:123456:worker:datanode
+zc:centos14:123456:worker:datanode
+zc:centos15:123456:worker:datanode
+zc:centos16:123456:worker:datanode
+zc:centos17:123456:worker:datanode
+zc:centos18:123456:worker:datanode
+zc:centos19:123456:worker:datanode
+zc:centos20:123456:worker:datanode
+zc:centos21:123456:worker:datanode
+zc:centos22:123456:worker:datanode
+zc:centos23:123456:worker:datanode
+zc:centos24:123456:worker:datanode
+#zc:centos25:123456:worker:datanode
